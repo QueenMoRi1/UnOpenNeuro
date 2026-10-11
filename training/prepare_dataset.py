@@ -7,7 +7,7 @@ Input: a folder of files.
   *.jsonl         already formatted rows: {"messages": [{"role": ..., "content": ...}]}
 
 Output: train.jsonl and valid.jsonl in the "messages" chat format, which
-both MLX-LM (Mac) and Unsloth (Colab) read directly.
+both Unsloth (Colab) and MLX-LM (Mac) read directly.
 
 Example:
   python training/prepare_dataset.py data/raw data/train --persona Neuro

@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import shutil
+import sys
 from typing import Any
 
 log = logging.getLogger("unopenneuro.voice")
@@ -22,25 +24,41 @@ class Speaker:
 
     def __init__(self, cfg: dict[str, Any], avatar=None):
         self.backend = cfg.get("tts", "none")
+        if self.backend == "say":  # old name for the built-in voice
+            self.backend = "system"
         self.pitch = float(cfg.get("pitch", 1.0))
         self.voice = cfg.get("kokoro_voice", "af_heart")
         self.avatar = avatar
         self._lock = asyncio.Lock()
         self._pipeline = None
-        if self.backend == "say" and not shutil.which("say"):
-            raise RuntimeError("tts: say only works on macOS")
+        if self.backend == "system" and not (sys.platform == "win32" or shutil.which("say")):
+            raise RuntimeError("tts: system only works on Windows and macOS; use kokoro")
 
     async def __call__(self, text: str) -> None:
         async with self._lock:
-            if self.backend == "say":
-                await self._say(text)
+            if self.backend == "system":
+                await self._system(text)
             elif self.backend == "kokoro":
                 await self._kokoro(text)
 
-    async def _say(self, text: str) -> None:
-        # macOS default rate is ~175 words per minute.
-        rate = str(int(175 * self.pitch))
-        proc = await asyncio.create_subprocess_exec("say", "-r", rate, text)
+    async def _system(self, text: str) -> None:
+        if sys.platform == "win32":
+            # Windows' built-in voice via PowerShell. The text goes in an
+            # environment variable so quotes in it can't break the command.
+            rate = max(-10, min(10, round((self.pitch - 1) * 10)))
+            script = (
+                "Add-Type -AssemblyName System.Speech;"
+                "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;"
+                f"$s.Rate = {rate}; $s.Speak($env:UNOPENNEURO_TEXT)"
+            )
+            proc = await asyncio.create_subprocess_exec(
+                "powershell", "-NoProfile", "-Command", script,
+                env={**os.environ, "UNOPENNEURO_TEXT": text},
+            )
+        else:
+            # macOS default rate is ~175 words per minute.
+            rate = str(int(175 * self.pitch))
+            proc = await asyncio.create_subprocess_exec("say", "-r", rate, text)
         await proc.wait()
 
     async def _kokoro(self, text: str) -> None:

@@ -24,14 +24,16 @@ ONE-TIME SETUP
      and click "Agree and access repository". (Older WhisperX versions use
      speaker-diarization-3.1 instead. If you get an access error, open the
      link in the error message and agree there too.)
-  3. Install:  pip install -e ".[transcribe]"   (Mac also needs: brew install ffmpeg)
+  3. Install:  pip install -e ".[transcribe]"
+     Also install ffmpeg. Windows: `winget install ffmpeg` in PowerShell,
+     then open a new window. Mac: `brew install ffmpeg`. (Colab already has it.)
 
 EXAMPLES
   # Free Colab GPU (fast: a 3 hour stream takes roughly 10-20 minutes)
   python training/transcribe.py stream.mp4 --hf-token hf_xxx \\
       --voice Neuro=refs/neuro.wav --voice Vedal=refs/vedal.wav
 
-  # Mac (works, but expect about real time or slower for long streams)
+  # PC without an NVIDIA GPU, e.g. ROG Ally (works, but expect real time or slower)
   python training/transcribe.py stream.m4a --hf-token hf_xxx --model small.en --ask
 
   # Fix the names afterwards, no GPU needed
@@ -305,7 +307,7 @@ def main() -> None:
     p.add_argument("--min-speakers", type=int)
     p.add_argument("--max-speakers", type=int)
     p.add_argument("--model", default="large-v3",
-                   help="Whisper model: large-v3 (GPU), small.en or base.en (Mac)")
+                   help="Whisper model: large-v3 (GPU), small.en or base.en (no GPU)")
     p.add_argument("--device", default=None, help="cuda or cpu (auto-detected)")
     p.add_argument("--batch-size", type=int, default=16)
     p.add_argument("--hf-token", default=os.environ.get("HF_TOKEN"))

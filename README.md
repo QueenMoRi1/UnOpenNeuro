@@ -15,26 +15,45 @@ a voice (TTS), a microphone (STT) and VTube Studio lip-sync.
                                                  └──◀ mic (chat --listen)
 ```
 
-## Setup (Mac, no GPU needed)
+## Setup (Windows, e.g. ROG Ally; no NVIDIA GPU needed)
 
-1. **Install Ollama** from https://ollama.com and open it once.
-2. **Download a model** in Terminal:
-   ```bash
+Do these once. Tip: on the Ally, switch to desktop mode and plug in a keyboard.
+
+1. **Install Python 3.12** from https://www.python.org/downloads/windows/.
+   On the first installer screen, tick **"Add python.exe to PATH"**.
+2. **Install Git** from https://git-scm.com/download/win (the default options are fine).
+3. **Install Ollama** from https://ollama.com/download/windows. It runs in the
+   system tray once installed.
+4. **Open PowerShell** (Start menu -> type `PowerShell` -> Enter) and download a model:
+   ```powershell
    ollama pull qwen3:4b
    ```
-   (8 GB Mac: use `qwen3:1.7b` and set `model: qwen3:1.7b` in `config.yaml`.)
-3. **Install this project:**
-   ```bash
-   cd UnOpenNeuro
-   python3 -m venv .venv
-   source .venv/bin/activate
+   If replies feel slow, use `qwen3:1.7b` instead and set `model: qwen3:1.7b`
+   in `config.yaml`.
+5. **Get the project and install it** (still in PowerShell):
+   ```powershell
+   git clone https://github.com/queenmori1/unopenneuro.git
+   cd unopenneuro
+   git checkout ccr-29042952-9yipdk
+   py -m venv .venv
+   .venv\Scripts\Activate.ps1
    pip install -e ".[voice,listen]"
-   cp config.example.yaml config.yaml
+   copy config.example.yaml config.yaml
    ```
-4. **Say hi:**
-   ```bash
+   If the repo is private, a GitHub sign-in window pops up during
+   `git clone`. Sign in and it continues.
+   If `Activate.ps1` gives a red "running scripts is disabled" error, run
+   `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, answer `Y`, then try again.
+6. **Say hi:**
+   ```powershell
    unopenneuro chat
    ```
+
+Every time you open a new PowerShell window later, first run
+`cd unopenneuro` then `.venv\Scripts\Activate.ps1`.
+
+On a Mac or Linux the steps are the same except: `python3 -m venv .venv`,
+`source .venv/bin/activate` and `cp` instead of `copy`.
 
 ## Testing a Neuro SDK mod
 
@@ -61,10 +80,13 @@ send well-formed `data`.
 
 In `config.yaml`:
 
-- `voice.tts: say` uses the built-in macOS voice. No setup.
+- `voice.tts: system` uses the voice built into Windows (or macOS). No setup.
 - `voice.tts: kokoro` uses Kokoro, a small open-source TTS that sounds much
-  better and runs on the CPU. `pitch: 1.2` speeds it up and raises the pitch,
-  which is roughly how Neuro's voice is made.
+  better and runs on the CPU. On Windows, also install espeak-ng (the
+  `espeak-ng.msi` from https://github.com/espeak-ng/espeak-ng/releases), which
+  Kokoro uses for words it doesn't know.
+- `pitch: 1.2` speeds the voice up and raises it, which is roughly how
+  Neuro's voice is made.
 - `unopenneuro chat --listen` lets you talk to her with your microphone
   (press Enter to start, Enter again to stop).
 

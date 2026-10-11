@@ -29,7 +29,9 @@ neuro_api:
   context_window: 40
 
 voice:
-  # none | kokoro | say   ("say" uses the built-in macOS voice, zero setup)
+  # none | system | kokoro
+  #   system = the voice built into Windows (or macOS). Zero setup, robotic.
+  #   kokoro = free open-source voice, sounds much better, runs on the CPU.
   tts: none
   kokoro_voice: af_heart
   # Playback speed/pitch multiplier. Neuro's voice is a pitched-up TTS voice;

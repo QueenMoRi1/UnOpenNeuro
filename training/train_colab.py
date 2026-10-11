@@ -6,7 +6,7 @@ How to use (step by step):
   3. In the first cell run:   !pip install unsloth
   4. Upload train.jsonl and valid.jsonl (folder icon on the left -> upload).
   5. Paste this whole file into the next cell and run it (~20-60 min).
-  6. Download neuro-gguf/*.gguf from the file panel to your Mac and follow
+  6. Download neuro-gguf/*.gguf from the file panel to your computer and follow
      "Load it into Ollama" in training/README.md.
 """
 

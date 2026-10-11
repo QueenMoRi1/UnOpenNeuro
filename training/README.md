@@ -47,7 +47,7 @@ names each voice.
    save it as `refs/neuro.wav`.
 2. Do the same for Vedal (`refs/vedal.wav`) and anyone else who appears often.
 
-**Run it on a free Colab GPU** (recommended; a Mac also works, just slowly):
+**Run it on a free Colab GPU** (recommended; your own PC also works without an NVIDIA GPU, just slowly):
 
 1. In a new Colab notebook, choose **Runtime -> Change runtime type -> T4 GPU**.
 2. Upload this repo's `training/transcribe.py`, your `refs/` clips and your
@@ -81,7 +81,9 @@ python training/prepare_dataset.py data/raw data/train --persona Neuro --creator
 
 This writes `data/train/train.jsonl` and `data/train/valid.jsonl`.
 
-## 2a. Train on your Mac (Apple Silicon, 16 GB+ RAM)
+## 2a. Mac only: train on Apple Silicon (16 GB+ RAM)
+
+Skip this on Windows / ROG Ally and use 2b.
 
 ```bash
 pip install mlx-lm
@@ -96,7 +98,7 @@ mlx_lm.fuse --model Qwen/Qwen2.5-3B-Instruct --adapter-path adapters --save-path
 
 Then in `training/Modelfile` change the first line to `FROM ../outputs/neuro`.
 
-## 2b. Or train on a free Colab GPU
+## 2b. Train on a free Colab GPU (Windows, ROG Ally, anything)
 
 Follow the steps at the top of [`train_colab.py`](train_colab.py). You get a
 `.gguf` file; put it next to `training/Modelfile` and make the `FROM` line
