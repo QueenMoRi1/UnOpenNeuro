@@ -19,7 +19,9 @@ dependencies = [
 voice = ["kokoro>=0.9", "sounddevice>=0.4", "numpy", "soundfile"]
 # Speech-to-text for talking to her with a microphone
 listen = ["faster-whisper>=1.0", "sounddevice>=0.4", "numpy"]
-dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+# Turning stream recordings into speaker-labelled transcripts
+transcribe = ["whisperx>=3.3.2"]
+dev =["pytest>=8", "pytest-asyncio>=0.23"]
 
 [project.scripts]
 unopenneuro = "unopenneuro.__main__:main"

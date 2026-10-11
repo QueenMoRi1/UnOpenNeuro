@@ -12,3 +12,4 @@ outputs/
 *.gguf
 *.safetensors
 adapters/
+refs/

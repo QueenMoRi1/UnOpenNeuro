@@ -21,11 +21,57 @@ Put files in `data/raw/` (git-ignored, never committed):
   Lines with no speaker are assumed to be hers (change with `--default-speaker`).
 - `.jsonl` you wrote yourself, one `{"messages": [...]}` per line.
 
-Quality beats quantity. A few thousand clean, correctly attributed lines of
+Start each filename with the stream date (`2024-05-12_karaoke.txt`) so you
+can train on one era of her personality later. Quality beats quantity. A few thousand clean, correctly attributed lines of
 her speech beat 100k lines where you can't tell who is talking. Auto-generated
 subtitles mix speakers up, so fix attribution before training. Keep the data
 private: the transcripts are other people's content, and this project stays
 personal.
+
+### Turning stream recordings into transcripts
+
+`training/transcribe.py` takes audio or video files and writes `Speaker: text`
+lines into `data/raw/` for you. It works out *who* is talking by voice, then
+names each voice.
+
+**One-time setup** (full details at the top of `transcribe.py`):
+
+1. Make a free Hugging Face account and create a **read** token at
+   https://huggingface.co/settings/tokens.
+2. Open https://huggingface.co/pyannote/speaker-diarization-community-1 and
+   click **Agree and access repository**.
+
+**Make reference clips** (this lets it name speakers automatically):
+
+1. Cut 10-60 seconds where *only* Neuro talks, with no music or game audio, and
+   save it as `refs/neuro.wav`.
+2. Do the same for Vedal (`refs/vedal.wav`) and anyone else who appears often.
+
+**Run it on a free Colab GPU** (recommended; a Mac also works, just slowly):
+
+1. In a new Colab notebook, choose **Runtime -> Change runtime type -> T4 GPU**.
+2. Upload this repo's `training/transcribe.py`, your `refs/` clips and your
+   recordings using the folder icon on the left.
+3. Run these in a cell, replacing `hf_xxx` with your token:
+   ```
+   !pip install whisperx
+   !python transcribe.py recordings/ --hf-token hf_xxx --voice Neuro=refs/neuro.wav --voice Vedal=refs/vedal.wav --other Chat
+   ```
+4. Download the `data/raw/` and `data/transcripts/` folders, and put them in
+   the same place in your copy of this repo.
+
+For each speaker it prints a similarity score per reference voice, so you can
+see how sure it is. Then **open a couple of the `.txt` files and check them**. If
+a voice was named wrong, fix the names without re-running anything:
+
+```bash
+python training/transcribe.py --relabel data/transcripts/2024-05-12_stream.json --names SPEAKER_03=Vedal
+```
+
+Useful options: `--ask` (it shows sample lines and asks who each voice is),
+`--min-score 0.5` (drops low-confidence lines such as music, singing or
+overlapping speech) and `--max-speakers 3` (if you know how many people are
+in the stream).
 
 Then:
 
