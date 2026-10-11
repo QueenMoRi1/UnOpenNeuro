@@ -30,7 +30,7 @@ neuro_api:
 
 voice:
   # none | system | kokoro
-  #   system = the voice built into Windows (or macOS). Zero setup, robotic.
+  #   system = espeak-ng on Linux, the built-in voice on Windows/macOS. Robotic.
   #   kokoro = free open-source voice, sounds much better, runs on the CPU.
   tts: none
   kokoro_voice: af_heart

@@ -15,45 +15,84 @@ a voice (TTS), a microphone (STT) and VTube Studio lip-sync.
                                                  └──◀ mic (chat --listen)
 ```
 
-## Setup (Windows, e.g. ROG Ally; no NVIDIA GPU needed)
+## Setup (Bazzite / ROG Ally, using distrobox)
 
-Do these once. Tip: on the Ally, switch to desktop mode and plug in a keyboard.
+Bazzite's system files are read-only, so everything goes in a **distrobox**:
+a normal Ubuntu inside a container. It shares your home folder, network,
+sound and microphone with Bazzite, so games, VTube Studio and your files all
+see it as if it were installed normally. Distrobox comes with Bazzite.
 
-1. **Install Python 3.12** from https://www.python.org/downloads/windows/.
-   On the first installer screen, tick **"Add python.exe to PATH"**.
-2. **Install Git** from https://git-scm.com/download/win (the default options are fine).
-3. **Install Ollama** from https://ollama.com/download/windows. It runs in the
-   system tray once installed.
-4. **Open PowerShell** (Start menu -> type `PowerShell` -> Enter) and download a model:
-   ```powershell
+Do these once, in **Desktop Mode** (Steam button -> Power -> Switch to
+Desktop). A keyboard helps.
+
+1. **Open Konsole** (the terminal: app menu bottom-left -> type `Konsole` -> Enter).
+2. **Create the box and go into it:**
+   ```bash
+   distrobox create --name neuro --image ubuntu:24.04
+   distrobox enter neuro
+   ```
+   The first time takes a few minutes. When it finishes, your prompt changes to
+   show `neuro`. That means you're inside the box.
+3. **Install the tools** (inside the box; it asks for your password once):
+   ```bash
+   sudo apt update
+   sudo apt install -y python3-venv python3-dev build-essential git curl ffmpeg libportaudio2 espeak-ng
+   ```
+4. **Install Ollama** (inside the box):
+   ```bash
+   curl -fsSL https://ollama.com/install.sh | sh
+   ```
+   Ignore any warning about systemd; the box has none, so you start Ollama by
+   hand in the next step.
+5. **Start Ollama in its own tab.** In Konsole, press **Ctrl+Shift+T** for a new tab, then:
+   ```bash
+   distrobox enter neuro
+   ollama serve
+   ```
+   Leave this tab open; Ollama runs as long as it is open. Go back to the first tab.
+6. **Download a model** (first tab):
+   ```bash
    ollama pull qwen3:4b
    ```
-   If replies feel slow, use `qwen3:1.7b` instead and set `model: qwen3:1.7b`
-   in `config.yaml`.
-5. **Get the project and install it** (still in PowerShell):
-   ```powershell
+   If replies feel slow later, use `qwen3:1.7b` instead and set
+   `model: qwen3:1.7b` in `config.yaml`.
+7. **Get the project and install it** (first tab):
+   ```bash
+   cd ~
    git clone https://github.com/queenmori1/unopenneuro.git
    cd unopenneuro
    git checkout ccr-29042952-9yipdk
-   py -m venv .venv
-   .venv\Scripts\Activate.ps1
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install torch --index-url https://download.pytorch.org/whl/cpu
    pip install -e ".[voice,listen]"
-   copy config.example.yaml config.yaml
+   cp config.example.yaml config.yaml
    ```
-   If the repo is private, a GitHub sign-in window pops up during
-   `git clone`. Sign in and it continues.
-   If `Activate.ps1` gives a red "running scripts is disabled" error, run
-   `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, answer `Y`, then try again.
-6. **Say hi:**
-   ```powershell
+   The `torch` line installs the small CPU-only build. Without it, pip
+   downloads several GB of NVIDIA files the Ally can't use. If the repo is
+   private, `git clone` asks for your GitHub username and a personal access
+   token instead of a password.
+8. **Say hi:**
+   ```bash
    unopenneuro chat
    ```
 
-Every time you open a new PowerShell window later, first run
-`cd unopenneuro` then `.venv\Scripts\Activate.ps1`.
+**Every time after that**, open Konsole and:
+- Tab 1: `distrobox enter neuro`, then `ollama serve` (leave it running).
+- Tab 2: `distrobox enter neuro`, then `cd ~/unopenneuro`, then `source .venv/bin/activate`.
 
-On a Mac or Linux the steps are the same except: `python3 -m venv .venv`,
-`source .venv/bin/activate` and `cp` instead of `copy`.
+The project lives in `~/unopenneuro` in your normal home folder, so you can
+open it in the Dolphin file manager to drop in recordings or edit `config.yaml`.
+
+**Optional: use the Ally's graphics chip.** Ollama runs on the processor by
+default. The Ally's AMD graphics aren't officially supported by ROCm (the
+software Ollama uses for AMD GPUs), but a common workaround is to start
+Ollama with `HSA_OVERRIDE_GFX_VERSION=11.0.0 ollama serve` instead. If it
+crashes or isn't faster, go back to plain `ollama serve`.
+
+**Other systems:** on Windows, install Python, Git and Ollama normally, then
+use `py -m venv .venv`, `.venv\Scripts\Activate.ps1` and `copy` instead
+of `cp`. On a Mac, skip the `torch` line.
 
 ## Testing a Neuro SDK mod
 
@@ -62,7 +101,9 @@ unopenneuro serve
 ```
 
 Start your game/mod. It connects to `ws://localhost:8000` by default (or
-whatever `NEURO_SDK_WS_URL` is set to). The terminal shows everything the game
+whatever `NEURO_SDK_WS_URL` is set to). Games launched from Steam (including Windows
+games through Proton) reach the box fine, because distrobox shares Bazzite's
+network. The terminal shows everything the game
 sends (context, registered actions, results) and every action she takes.
 
 Supported commands: `startup`, `context`, `actions/register`,
@@ -80,17 +121,19 @@ send well-formed `data`.
 
 In `config.yaml`:
 
-- `voice.tts: system` uses the voice built into Windows (or macOS). No setup.
+- `voice.tts: system` uses espeak-ng (installed in step 3). Robotic, but instant and no setup.
 - `voice.tts: kokoro` uses Kokoro, a small open-source TTS that sounds much
-  better and runs on the CPU. On Windows, also install espeak-ng (the
-  `espeak-ng.msi` from https://github.com/espeak-ng/espeak-ng/releases), which
-  Kokoro uses for words it doesn't know.
+  better and runs on the CPU. It also uses espeak-ng for words it doesn't know.
 - `pitch: 1.2` speeds the voice up and raises it, which is roughly how
   Neuro's voice is made.
 - `unopenneuro chat --listen` lets you talk to her with your microphone
   (press Enter to start, Enter again to stop).
 
 **VTube Studio lip-sync** (Kokoro only):
+
+VTube Studio is on Steam and runs on Bazzite through Proton. Its plugin
+connection uses the network, so the box can reach it.
+
 
 1. In VTube Studio open Settings (gear icon) and turn on **Start API (allow plugins)**. Leave the port at 8001.
 2. Run `unopenneuro vts-auth` and click **Allow** in the popup inside VTube Studio.

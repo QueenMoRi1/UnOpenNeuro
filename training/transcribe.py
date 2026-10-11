@@ -25,8 +25,11 @@ ONE-TIME SETUP
      speaker-diarization-3.1 instead. If you get an access error, open the
      link in the error message and agree there too.)
   3. Install:  pip install -e ".[transcribe]"
-     Also install ffmpeg. Windows: `winget install ffmpeg` in PowerShell,
-     then open a new window. Mac: `brew install ffmpeg`. (Colab already has it.)
+     Also needs ffmpeg. Bazzite distrobox / Ubuntu: `sudo apt install ffmpeg`
+     (already done if you followed the README). Windows: `winget install ffmpeg`.
+     Mac: `brew install ffmpeg`. Colab already has it.
+     Without an NVIDIA GPU, install the small CPU build of torch first:
+     pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 EXAMPLES
   # Free Colab GPU (fast: a 3 hour stream takes roughly 10-20 minutes)

@@ -83,7 +83,7 @@ This writes `data/train/train.jsonl` and `data/train/valid.jsonl`.
 
 ## 2a. Mac only: train on Apple Silicon (16 GB+ RAM)
 
-Skip this on Windows / ROG Ally and use 2b.
+Skip this on anything that isn't an Apple Silicon Mac (including the ROG Ally) and use 2b.
 
 ```bash
 pip install mlx-lm
@@ -98,7 +98,7 @@ mlx_lm.fuse --model Qwen/Qwen2.5-3B-Instruct --adapter-path adapters --save-path
 
 Then in `training/Modelfile` change the first line to `FROM ../outputs/neuro`.
 
-## 2b. Train on a free Colab GPU (Windows, ROG Ally, anything)
+## 2b. Train on a free Colab GPU (ROG Ally, Linux, Windows, anything)
 
 Follow the steps at the top of [`train_colab.py`](train_colab.py). You get a
 `.gguf` file; put it next to `training/Modelfile` and make the `FROM` line

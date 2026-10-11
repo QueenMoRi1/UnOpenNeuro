@@ -31,8 +31,12 @@ class Speaker:
         self.avatar = avatar
         self._lock = asyncio.Lock()
         self._pipeline = None
-        if self.backend == "system" and not (sys.platform == "win32" or shutil.which("say")):
-            raise RuntimeError("tts: system only works on Windows and macOS; use kokoro")
+        if self.backend == "system" and not (
+            sys.platform == "win32" or shutil.which("say") or shutil.which("espeak-ng")
+        ):
+            raise RuntimeError(
+                "tts: system needs espeak-ng on Linux (e.g. `sudo apt install espeak-ng`)"
+            )
 
     async def __call__(self, text: str) -> None:
         async with self._lock:
@@ -55,10 +59,21 @@ class Speaker:
                 "powershell", "-NoProfile", "-Command", script,
                 env={**os.environ, "UNOPENNEURO_TEXT": text},
             )
-        else:
+        elif shutil.which("say"):
             # macOS default rate is ~175 words per minute.
             rate = str(int(175 * self.pitch))
             proc = await asyncio.create_subprocess_exec("say", "-r", rate, text)
+        else:
+            # Linux: espeak-ng, female variant, pitch raised to taste. Text
+            # goes in on stdin so a line starting with "-" isn't read as a flag.
+            proc = await asyncio.create_subprocess_exec(
+                "espeak-ng", "-v", "en-us+f3",
+                "-s", str(int(175 * self.pitch)),
+                "-p", str(max(0, min(99, int(50 + (self.pitch - 1) * 100)))),
+                stdin=asyncio.subprocess.PIPE,
+            )
+            await proc.communicate(text.encode())
+            return
         await proc.wait()
 
     async def _kokoro(self, text: str) -> None:
