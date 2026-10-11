@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unopenneuro"
+version = "0.1.0"
+description = "Private, local stand-in for Neuro-sama for testing Neuro Game SDK mods"
+requires-python = ">=3.10"
+dependencies = [
+    "websockets>=13",
+    "httpx>=0.27",
+    "pyyaml>=6",
+    "jsonschema>=4",
+]
+
+[project.optional-dependencies]
+# Text-to-speech (Kokoro runs fine on a Mac CPU) + audio playback
+voice = ["kokoro>=0.9", "sounddevice>=0.4", "numpy", "soundfile"]
+# Speech-to-text for talking to her with a microphone
+listen = ["faster-whisper>=1.0", "sounddevice>=0.4", "numpy"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+unopenneuro = "unopenneuro.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["unopenneuro*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
